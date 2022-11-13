@@ -68,7 +68,7 @@
 
     .my_modal-header {
         padding: 3px 10px;
-        background-color: #ccffbe;
+        background-color: #a9d8ff;
         color: black;
         border:1px solid #a1e891;
     }
@@ -78,21 +78,20 @@
         padding:5px;
         font-size: 15px;
         /*display: flex;*/
+        flex-direction: column;
         justify-content: flex-start;
-        align-items: center;
+        /*align-items: center;*/
         cursor: pointer;
         /*background: #8bc34a;*/
     }
-    .modal_folder:hover{
+    .modal_single_folder:hover{
         background-color: #83b7f3;
     }
     .modal_folder i{
         margin-right: 10px;
 
     }
-    .selected_modal_folder{
-        background-color: #a1e891;
-    }
+
     .inner{
         margin-left: 30px;
     }
@@ -155,28 +154,53 @@
         height: 200px;
     }
     /* kraj za kropi */
+    .action_buttons a{
+        font-size: 20px;
+        color:#1a202c;
+    }
+    .action_buttons a:hover{
+        color: #e7081b;
+    }
+    .action_buttons span{
+        font-size: 14px;
+        color:#1a202c;
 
+    }
+    .toaster_msg{
+        position: absolute;
+        top:49px;
+        right:41px;
+        width:400px;
+        padding:15px;
+        z-index: 100;
+        color: whitesmoke;
+    }
 
 </style>
 
-<div id="myModal" class="modal">
+<div id="myModal" class="modal ">
+
     <div class="modal-content">
+        <div class="toaster_msg d-none"></div>
         <div class="my_modal-header">
             <div class="row">
-                <div class="col-4">
-                    <h4>File Manager</h4>
+                <div class="col-4 d-flex justify-content-center align-items-center">
+                    <h5>File Manager</h5>
                 </div>
                 <div class="col-8">
                     <div class="row">
-                        <div class="col-11 d-flex justify-content-start align-items-center">
-                            <a href="#" class="mr-2 add_image_to_folder action_buttons" data-toggle="tooltip" data-placement="top" title="Dodaj sliku u folder" >
+                        <div class="col-11 d-flex justify-content-start align-items-center action_buttons">
+                            <a href="#" class="mr-3" id="add_image_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj sliku u folder" >
                                 <i class="far fa-plus-square"></i>
                             </a>
-                            <a href="#" class="mr-2 add_folder_to_folder action_buttons" data-toggle="tooltip" data-placement="top" title="Kreiraj folder u ovom folderu" >
+                            <a href="#" class="mr-3 " id="add_video_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj video u ovaj folder" >
+                                <i class="far fa-file-video"></i>
+                            <a href="#" class="mr-3 " id="add_folder_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Kreiraj folder u ovom folderu" >
                                 <i class="fas fa-folder-plus"></i>
                             </a>
-                            <span>Selektovani folder je:&nbsp;&nbsp; </span><span id="folder_path" class="text-lightblue"></span>
-                            <span id="info_msg_container" style="margin-left: auto"></span>
+                            </a>
+                            <span>Poslednji selektovani folder je:&nbsp;&nbsp; </span><span id="folder_path" class="text-danger"></span>
+                            <span id="info_msg_container" style="margin-left: auto; "></span>
 
                         </div>
                         <div class="col-1">

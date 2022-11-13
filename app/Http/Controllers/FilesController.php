@@ -34,6 +34,50 @@ class FilesController extends Controller
         return false;
     }
 
+    public function getFolders(){
+        $starting_dir=public_path('');
+        $scanned=array_diff(scandir($starting_dir), array('..', '.'));
+        //info($scanned);
+        $result=[];
+        foreach ($scanned as $item){
+
+            if(is_dir($item) && in_array($item, $this->dirs_with_images)){
+                $temp_result=['type'=>'folder'];
+                $temp_result['name']=$item;
+                $temp_result['id']=$this->folder_id;
+                $temp_result['parent']=0;
+                $temp_result['path']=$item;
+                $temp_result['folders'] = $this->returnFolder($item, $this->folder_id);
+                $result[]=$temp_result;
+                $this->folder_id +=1;
+            }
+        }
+       // info($result);
+        return response()->json(['result'=>$result]);
+    }
+
+    protected function returnFolder($dir, $parent){
+        $previous_path=$dir.DIRECTORY_SEPARATOR;
+        $scanned=array_diff(scandir($dir), array('..', '.'));
+        $result=[];
+        //info(json_encode($scanned));
+        foreach ($scanned as $item){
+
+            if(is_dir($previous_path.$item)){
+                $temp_result=['type'=>'folder'];
+                $temp_result['name']=$item;
+                $this->folder_id +=1;
+                $temp_result['id']=$this->folder_id;
+                $temp_result['parent']=$parent;
+                $temp_result['path']=$previous_path.$item;
+                $temp_result['folders'] = $this->returnFolder($previous_path.$item, $temp_result['id']);
+                $result[]=$temp_result;
+            }
+        }
+        //info(json_encode($this->sortResult($result)));
+        return $this->sortResult($result);
+    }
+
     protected function sortResult($result){
         //info(json_encode($result));
         $folders=[];
@@ -51,51 +95,7 @@ class FilesController extends Controller
         return array_merge($folders, $image_objects);
     }
 
-    protected function returnFolder($dir, $parent){
-        $previous_path=$dir.DIRECTORY_SEPARATOR;
-        $scanned=array_diff(scandir($dir), array('..', '.'));
-        $result=[];
 
-        foreach ($scanned as $item){
-
-            if(is_dir($previous_path.$item)){
-                $temp_result=['type'=>'folder'];
-                $temp_result['name']=$item;
-                $this->folder_id +=1;
-                $temp_result['id']=$this->folder_id;
-                $temp_result['parent']=$parent;
-                $temp_result['path']=$previous_path.$item;
-                $temp_result[$item] = $this->returnFolder($previous_path.$item, $temp_result['id']);
-                $result[]=$temp_result;
-
-            }
-
-
-        }
-        return $this->sortResult($result);
-    }
-
-//
-
-    public function getFolders(){
-        $starting_dir=public_path('');
-        $scanned=array_diff(scandir($starting_dir), array('..', '.'));
-        $result=[];
-        foreach ($scanned as $item){
-
-            if(is_dir($item) && in_array($item, $this->dirs_with_images)){
-                $temp_result=['type'=>'folder'];
-                $temp_result['name']=$item;
-                $temp_result['id']=$this->folder_id;
-                $temp_result['parent']=0;
-                $temp_result['path']=$item;
-                $temp_result[$item] = $this->returnFolder($item, $this->folder_id);
-                $result[]=$temp_result;
-                $this->folder_id +=1;
-            }
-        }
-        return response()->json(['result'=>$result]);
-    }
     public function getImages(Request $request){
         //info($request->all());
         $folders=explode(DIRECTORY_SEPARATOR, $request->path);
@@ -157,7 +157,7 @@ class FilesController extends Controller
         $path = public_path($request->folder_path)."/".$file_name;
         //info('pathj je '.$path);
         if(Image::make($image->getRealPath())->save($path)){
-            return response()->json(['success']);
+            return response()->json(['success'=>true]);
         }else{
             return response()->json(['errors'=>['Slika nije aploudovana.']]);
         }
@@ -165,13 +165,13 @@ class FilesController extends Controller
 
 
     public function storeFolder(Request $request){
-//        //info(json_encode($request->all()));
+        //info(json_encode($request->all()));
         $validator=Validator::make($request->all(), [
             'folder_path'=>'required',
             'name'=>'required|max:200'
         ]);
         if($validator->fails()){
-            info($validator->errors());
+            //info($validator->errors());
             return response()->json(['errors'=>$validator->errors()]);
         }
         if(!is_writable(public_path()."/".$request->folder_path)){
@@ -181,9 +181,15 @@ class FilesController extends Controller
             $folderPath=public_path($request->folder_path)."/".$new_folder;
             $response=File::makeDirectory($folderPath, 0777, true, true);
             //info($response);
-            return response()->json(['success'=>['path'=>$folderPath]]);
+            //return response()->json(['success'=>['path'=>$folderPath]]);
+            return response()->json(['success'=>['name'=>$new_folder, 'path'=>$request->folder_path]]);
         }
 //
+    }
+
+
+    public function storeVideo(Request $request){
+
     }
 
     public function destroy(Request $request){

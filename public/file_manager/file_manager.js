@@ -1,20 +1,66 @@
 class BoleFileManager{
     constructor(data, settings, target_for_image_path) {
         this.target_for_image_path=target_for_image_path;
-        this.margin_left=0;
-        this.folder_tree;
         this.data=data;
         this.settings=settings;
-        this.current_folder;
+        this.current_folder={};
         this.info_msg_container=document.getElementById('info_msg_container');
         this.modal_content=document.getElementById('modal_content');
-        this.putInModalTree();
+        this.createFolderTreeview();
         this.openModal();
         this.giveOpenCloseFolderListeners();
-        this.giveListenersToActionButtons();
-        //c('pristigao target', target_for_image_path, this.target_for_image_path)
+        this.giveListenerToCreateFolderButton();
+        this.giveListenerToCreateImageButton();
+        this.giveListenerToCreateVideoButton();
     }
     c = console.log;
+
+
+    createFolderTreeview(){
+        let html="";
+        if(this.data.data.hasOwnProperty('result')){
+            this.data.data.result.forEach((value, key)=>{
+                html +=this.createSingleFolderHtmlInTreeview(value);
+            });
+            document.getElementById('modal_folders').innerHTML=html;
+            //moraju dve petlje da se rade za svaki nivo. prva da se pravi parent, druga da se prave deca
+            this.data.data.result.forEach((data)=>{
+                this.createTreeviewRecursion(data);
+            });
+        }else{
+            //nema ništa. vrv neki error
+            c('greška, nema result', this.data)
+        }
+    }
+
+    createTreeviewRecursion(data){
+        if(data.hasOwnProperty('folders') && data.folders.length){
+            data.folders.forEach(data=>{
+                let div_target=document.getElementById('inner_folder_'+data.parent);
+                div_target.innerHTML+=this.createSingleFolderHtmlInTreeview(data);
+            });
+
+            data.folders.forEach((data)=>{
+                this.createTreeviewRecursion(data)
+            });
+        }
+    }
+
+    createSingleFolderHtmlInTreeview=(data)=>{
+        let starting_display=data.parent==0 ? 'd-flex' : 'd-none';
+        return '<div class="modal_folder '+starting_display+' " ' +
+                'data-status="folder_closed" ' +
+                'data-path="'+data.path+'" ' +
+                'data-parent="'+data.parent+'" ' +
+                'data-folder_id="'+data.id+'">'+
+                    '<div class="d-flex align-items-center modal_single_folder">'+
+                        '<i class="fas fa-folder"></i>'+
+                        '<span class="folder_name">'+data.name+'</span>'+
+                    '</div>'+
+                    '<div class="ml-2" id="inner_folder_'+data.id+'">' +
+                    '</div>'+
+                '</div>';
+    }
 
     showCreateFolderForm(action, folder_path){
         return `
@@ -37,22 +83,26 @@ class BoleFileManager{
     }
 
     giveHoverListener=()=>{
-        $(".modal_image_body").on('mouseenter', (e)=>{
-            let target_div=e.currentTarget;
-            c("modal content",this.modal_content)
-            c("target div",target_div)
-            c("modal w" ,this.modal_content.offsetWidth)
-            c("modal h", this.modal_content.offsetHeight)
 
-            c(target_div)
+    }
 
-        });
+    showToasterMessage(msg, classes="bg-success"){
+        let div=document.getElementsByClassName('toaster_msg')[0];
+        div.textContent=msg;
+        div.classList.remove('d-none');
+        div.classList.add(classes);
+        setTimeout(()=>{
+            div.textContent="";
+            div.classList.add('d-none');
+            div.classList.remove(classes);
+        }, 3500);
+
     }
 
     callbackAfterImageIsAdded=(data)=>{
         if(data[0]==='success'){
             this.info_msg_container.innerHTML=this.showMessage('Slika uspešno uploadovana', 'text-success');
-            this.getAllImagesFromFolder(this.current_folder)
+            this.getAllImagesFromFolder(this.current_folder.path)
         }else{
             for(let i=0; i<data.errors.length; i++){
                 this.info_msg_container.innerHTML +=this.showMessage(data.errors[i], 'text-danger');
@@ -62,35 +112,86 @@ class BoleFileManager{
             this.info_msg_container.innerHTML="";
         }, 5000);
     }
-    updateDirTree=(data)=>{
-        c(data)
-        let folder_name=data.success;
 
+    giveListenerToCreateVideoButton=()=>{
+        document.getElementById('add_video_to_folder_btn').addEventListener('click', (e)=>{
+            e.preventDefault();
+            if(Object.keys(this.current_folder).length===0){
+                this.modal_content.innerHTML="<div class='bg-danger'>Potrebno je selektovati folder</div>"
+            }else{
+                this.modal_content.innerHTML=this.showUploadVideoForm(this.settings.link_to_store_videos, this.current_folder.path)
+            }
+        });
     }
 
-    giveListenersToActionButtons(){
-        let btns=document.getElementsByClassName('action_buttons');
-        for(let i=0; i<btns.length; i++){
-            btns[i].addEventListener('click', (e)=>{
-                if(this.current_folder===undefined){
-                    this.modal_content.innerHTML="<div class='bg-danger'>Potrebno je selektovati folder</div>"
-                }else{
-                    if(e.currentTarget.classList.contains('add_image_to_folder')){
-                        //this.modal_content.innerHTML=this.showInputFileForm(this.settings.link_to_store_images, this.current_folder);
-                        //this.initCropper(this.settings);//za cropper
-                        this.modal_content.innerHTML=this.showInputFileFormCroppie()
-                        this.initCroppie(this.settings, this.current_folder)
-                        //this.addSubmitFormByPostListener('add_image_to_folder', 'callbackAfterImageIsAdded');
-                    }else if(e.currentTarget.classList.contains('add_folder_to_folder')){
-                        this.modal_content.innerHTML=this.showCreateFolderForm(this.settings.link_to_store_folder, this.current_folder);
-                        this.addSubmitFormByPostListener('add_folder_to_folder', 'updateDirTree');
-                    }
-                }
+    showUploadVideoForm=(action, folder_path)=>{
+        return `
+           <div class="col-md-4 col-xs-12 col-sm-12 mt-4" >
+               <form action="${action}"  method="POST" id="add_video_to_folder" enctype="multipart/form-data">
+                   <div class="form-group">
+                       <label for="file1">Dodaj video u odabrani folder</label>
+                       <input type="hidden" name="folder_path" value="${folder_path}">
+                       <input type="file" class="form-control" id="video" name="video">
+                   </div>
 
-            });
+                   <input type="submit" value="Sačuvaj" class="btn btn-outline-primary">
+               </form>
+           </div>
+           `;
+    }
+
+
+    updateDirTree=(data)=>{
+        if(data.data.hasOwnProperty('success')){
+            let folder_name=data.data.success.name;//ok
+            let container_div=document.querySelector('div[data-folder_id="'+this.current_folder.folder_id+'"]');
+            //treba da u parenta, tj u selektovani, da ubacimo novi folder tj div
+            let new_folder={};
+            new_folder.name=folder_name;
+            new_folder.path=this.current_folder.path+'/'+folder_name;
+            new_folder.parent=container_div.getAttribute('data-folder_id');
+            new_folder.id=Math.random();
+            new_folder.type="folder";
+            new_folder.folders=[];
+            let new_folder_html=this.createSingleFolderHtmlInTreeview(new_folder)
+            let replaced_html=new_folder_html.replace('d-none', 'd-flex');
+            document.getElementById('inner_folder_'+new_folder.parent).innerHTML += replaced_html;
+            this.giveOpenCloseFolderListeners();
+            document.getElementById('modal_content').innerHTML="";
+            this.showToasterMessage('Folder je kreiran uspešno', 'bg-success')
+        }else{
+            c(data.data)
+            //neka greška
+            this.showToasterMessage(data.data.errors, 'bg-danger')
         }
     }
 
+
+    giveListenerToCreateFolderButton=()=>{
+        document.getElementById('add_folder_to_folder_btn').addEventListener('click', (e)=>{
+            e.preventDefault();
+            if(Object.keys(this.current_folder).length===0){
+                c('nije selektovan folder')
+                this.modal_content.innerHTML="<div class='bg-danger'>Potrebno je selektovati folder</div>"
+            }else{
+                c('selektovan folder')
+                this.modal_content.innerHTML=this.showCreateFolderForm(this.settings.link_to_store_folder, this.current_folder.path);
+                this.addSubmitFormByPostListener('add_folder_to_folder', 'updateDirTree');
+            }
+        }, true);
+    }
+
+    giveListenerToCreateImageButton=()=>{
+        document.getElementById('add_image_to_folder_btn').addEventListener('click', (e)=>{
+            e.preventDefault();
+            if(Object.keys(this.current_folder).length===0){
+                this.modal_content.innerHTML="<div class='bg-danger'>Potrebno je selektovati folder</div>"
+            }else{
+                this.modal_content.innerHTML=this.showInputFileFormCroppie()
+                this.initCroppie(this.settings, this.current_folder.path)
+            }
+        });
+    }
     initCroppie=(settings, folder_path)=>{
         var croppie = null;
         var el = document.getElementById('resizer');
@@ -107,21 +208,24 @@ class BoleFileManager{
             enableResize:true,
             enableOrientation: true
         };
-        $("#img_width").on('change keyup', function (e) {
+        const showToasterMessage=this.showToasterMessage;
+        const getAllImagesFromFolder=this.getAllImagesFromFolder;
+        const current_folder=this.current_folder;
+
+        document.getElementById('img_width').addEventListener('change keyup', (e)=>{
             let new_val=e.target.value;
             croppie_settings.viewport.width=new_val;
             croppie_settings.boundary.width=new_val*1.2;
-            //c('novi w', new_val)
+        })
 
-        });
-        $("#img_height").on('change keyup', function (e) {
+        document.getElementById('img_height').addEventListener('change keyup', (e)=>{
             let new_val=e.target.value;
             croppie_settings.viewport.height=new_val;
             croppie_settings.boundary.height=new_val*1.2;
-            //c('novi h', new_val)
         });
 
-        $.base64ImageToBlob = function(str) {
+
+        const base64ImageToBlob=(str)=>{
             // extract content type and base64 payload from original string
             var pos = str.indexOf(';base64,');
             var type = str.substring(5, pos);
@@ -139,7 +243,7 @@ class BoleFileManager{
             var blob = new Blob([buffer], { type: type });
             return blob;
         }
-        $.getImage = function(input, croppie) {
+        const getImage = (input, croppie)=>{
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
@@ -151,55 +255,44 @@ class BoleFileManager{
             }
         }
 
-        $("#file-upload").on("change", function(event) {
-            // Initailize croppie instance and assign it to global variable
+        document.getElementById('file-upload').addEventListener('change', (event)=>{
             if(croppie){
                 croppie.destroy();
             }
-
             croppie = new Croppie(el, croppie_settings);
-            $.getImage(event.target, croppie);
+            getImage(event.target, croppie);
         });
-        $("#upload").on("click", function() {
+
+        document.getElementById('upload').addEventListener('click', (e)=>{
             croppie.result('base64').then(function(base64) {
 
                 var url = settings.link_to_store_images;
                 var formData = new FormData();
-                var image_name=$("#img_name");
+                var image_name=document.getElementById("img_name");
                 if(image_name){
-                    formData.append('name', $(image_name).val());
+                    formData.append('name', image_name.value);
                 }
                 formData.append('folder_path', folder_path);
-                formData.append("image", $.base64ImageToBlob(base64));
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': $('input[name=_token]').val()
-                    }
-                });
-                $.ajax({
-                    type: 'POST',
-                    url: url,
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(data) {
-                        if (data == "success") {
-                            alert('Slika uspešno postavljena')
-                        } else {
-                            alert('Desila se greška')
-                        }
-                    },
-                    error: function(error) {
-                        console.log(error);
-                        alert('Desila se greška u uploadu')
+                formData.append("image", base64ImageToBlob(base64));
+                axios.post(url, formData).then((data)=>{
+                    if (data.data.hasOwnProperty("success")) {
+                        showToasterMessage('Slika uspešno postavljena', 'bg-success')
+                        getAllImagesFromFolder(current_folder.path)
+
+                    } else {
+                        showToasterMessage('Greška prilikom uploadovanja', 'bg-danger')
+
                     }
                 });
             });
         });
-        // To Rotate Image Left or Right
-        $(".rotate").on("click", function() {
-            croppie.rotate(parseInt($(this).data('deg')));
-        });
+
+        let rotate_btns=document.getElementsByClassName('rotate');
+        for(let i=0;i<rotate_btns.length; i++){
+            rotate_btns[i].addEventListener('click', (e)=>{
+                croppie.rotate(parseInt(e.currentTarget.getAttribute('data-deg')));
+            });
+        }
     }
 
     showInputFileFormCroppie=()=>{
@@ -254,48 +347,6 @@ class BoleFileManager{
         })
     }
 
-    //rekurzivna funkcija koja dobija folder i ispisuje sve foldere koji se nalaze u tom folderu
-    getFolderHtml(data, margin_left){
-        //c("u get folder html",data);
-        let html="";
-        if(data.parent===0){
-            this.margin_left=0;
-        }else{
-            this.margin_left +=30;
-        }
-        let starting_display=data.parent===0 ? 'd-flex' : 'd-none';
-        html += '<div class="modal_folder '+starting_display+' " ' +
-            'data-status="folder_closed" ' +
-            'data-path="'+data.path+'" ' +
-            'data-parent="'+data.parent+'" ' +
-            'style="margin-left: '+this.margin_left+'px" data-folder_id="'+data.id+'">'+
-            '<i class="fas fa-folder"></i>'+
-            '<span class="folder_name">'+data.name+'</span>'+
-            '</div>';
-        data[data.name].forEach((value, key)=>{
-            html +=this.getFolderHtml(value, Number(this.margin_left));
-        });
-        this.margin_left=0;
-        return html;
-    }
-
-    putInModalTree(){
-        c("put in modal tree", this.data)
-        let html="";
-        if(this.data.data.hasOwnProperty('result')){
-            this.folder_tree=this.data.data.result;
-            this.data.data.result.forEach((value, key)=>{
-                c('value je', value)
-                html +=this.getFolderHtml(value, this.margin_left);
-            });
-            document.getElementById('modal_folders').innerHTML=html;
-        }else{
-            //nema ništa. vrv neki error
-            c('greška, nema result', this.data)
-        }
-
-    }
-
     openModal(){
         let modal = document.getElementById("myModal");
         let btn=document.querySelector('button[title="Source"]');
@@ -320,7 +371,7 @@ class BoleFileManager{
         //c('folder id je ', folder_id)
         let target_i=target.getElementsByTagName('i')[0];
         //c('target_i je ', target_i)
-        this.removeSelectedClass();
+        //this.removeSelectedClass();
         if(target.getAttribute('data-status')==="folder_opened"){
             target.setAttribute('data-status', 'folder_closed');
             target_i.classList.add('fa-folder');
@@ -330,9 +381,10 @@ class BoleFileManager{
             //prikauzjemo sve slike iz tog foldera ako ima
             let path=target.getAttribute('data-path');
             this.getAllImagesFromFolder(path);
-            this.current_folder=path;
+            this.current_folder.path=path;
+            this.current_folder.parent_id=target.getAttribute('data-parent')
+            this.current_folder.folder_id=target.getAttribute('data-folder_id');
             document.getElementById('folder_path').textContent=path;
-            target.classList.add('selected_modal_folder')
             target.setAttribute('data-status', 'folder_opened');
             target_i.classList.add('fa-folder-open');
             target_i.classList.remove('fa-folder');
@@ -348,7 +400,7 @@ class BoleFileManager{
                 child_folders[i].classList.remove('d-flex');
             }
         }
-        //c(this.current_folder)
+        //c(this.current_folder.path)
     }
 
     //kad se klikne na folder koji je zatvoren, folder treba da se otvori i da se prikažu sve slike iz tog foldera
@@ -476,7 +528,7 @@ class BoleFileManager{
                    </div>
                </div>
                `;
-                this.initCropper();
+                this.initCroppie();
 
             });
         }
@@ -515,14 +567,7 @@ class BoleFileManager{
         }
     }
 
-    removeSelectedClass() {
-        let folder = document.getElementsByClassName('selected_modal_folder')[0];
-        if (folder) {
-            folder.classList.remove('selected_modal_folder');
-        }
-    }
-
-    //za cropper
+    //za cropper ne treba
     showInputFileForm=(action, folder_path)=>{
         return `
            <div class="col-12" >
@@ -611,5 +656,6 @@ class BoleFileManager{
    `;
 
     }
+
 
 }

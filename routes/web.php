@@ -38,6 +38,7 @@ Route::group(['middleware' => [ 'auth']], function () {
     Route::post('file-manager-store-image',[\App\Http\Controllers\FilesController::class,'storeImage'])->name('file.manager.store.image');//ok
     Route::post('file-manager-store-folder',[\App\Http\Controllers\FilesController::class,'storeFolder'])->name('file.manager.store.folder');//ok
     Route::get('file-manager-get-folders',[\App\Http\Controllers\FilesController::class, 'getFolders'])->name('file.manager.get.folders');
+    Route::post('file-manager-store-video',[\App\Http\Controllers\FilesController::class,'storeVideo'])->name('file.manager.store.video');//ok
 
 
 
@@ -53,3 +54,7 @@ Route::group(['middleware' => [ 'auth']], function () {
 
     Route::get('/cropper-create', [\App\Http\Controllers\FilesController::class, 'createCroppie'])->name('create.croppie');
 });
+
+Route::get('/treeview', function (){
+    return view('treewiew');
+})->name('treeview');

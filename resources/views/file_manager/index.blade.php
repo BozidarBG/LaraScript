@@ -61,6 +61,8 @@
         </form>
 
     </div>
+
+
 @endsection
 @section('scripts')
     <script src="https://cdn.tiny.cloud/1/fsquuamzo6sqovo99qdfi4bfr3ekvqv2opm5k37b1aips93q/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
@@ -76,6 +78,7 @@
             link_to_store_images:"{{route('file.manager.store.image')}}",
             link_to_store_folder:"{{route('file.manager.store.folder')}}",
             link_to_get_folders:"{{route('file.manager.get.folders')}}",
+            link_to_store_videos:"{{route('file.manager.store.video')}}",
         };
         tinymce.init({
             selector: '#desc', // Replace this CSS selector to match the placeholder element for TinyMCE
