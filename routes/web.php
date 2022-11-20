@@ -12,6 +12,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('user.dashboard');
 
+Route::view('funkcije', 'funkcije')->name('korisne.funkcije');
 require __DIR__.'/auth.php';
 
 //ovo je za na jednoj strani crud (kreiranje kategorija i nešto što je malo. polje ili dva u tabeli)
@@ -40,6 +41,7 @@ Route::group(['middleware' => [ 'auth']], function () {
     Route::get('file-manager-get-folders',[\App\Http\Controllers\FilesController::class, 'getFolders'])->name('file.manager.get.folders');
     Route::post('file-manager-store-video',[\App\Http\Controllers\FilesController::class,'storeVideo'])->name('file.manager.store.video');//ok
 
+    Route::get('/file-manager-only', [\App\Http\Controllers\FilesController::class, 'index2'])->name('file.manager.only');//ok
 
 
 

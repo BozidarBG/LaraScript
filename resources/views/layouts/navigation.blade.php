@@ -25,6 +25,12 @@
                     <a class="nav-link" href="{{route('posts.index')}}">Posts</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{route('korisne.funkcije')}}">Korisne funkcije</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{route('file.manager.only')}}">File manager sam</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{route('video.player.index')}}">Video plejer</a>
                 </li>
                 <li class="nav-item">

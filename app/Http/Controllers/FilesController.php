@@ -22,6 +22,10 @@ class FilesController extends Controller
         return view('file_manager.index');
     }
 
+    public function index2(){
+        return view('file_manager.index2');
+    }
+
     public function create(){
 
     }

@@ -158,9 +158,6 @@
         font-size: 20px;
         color:#1a202c;
     }
-    .action_buttons a:hover{
-        color: #e7081b;
-    }
     .action_buttons span{
         font-size: 14px;
         color:#1a202c;
@@ -190,13 +187,16 @@
                 <div class="col-8">
                     <div class="row">
                         <div class="col-11 d-flex justify-content-start align-items-center action_buttons">
-                            <a href="#" class="mr-3" id="add_image_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj sliku u folder" >
+                            <a href="#" class="btn btn-primary mr-3" id="add_image_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj sliku u folder" >
                                 <i class="far fa-plus-square"></i>
+                                <span class="action_buttons-text">Dodaj sliku</span>
                             </a>
-                            <a href="#" class="mr-3 " id="add_video_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj video u ovaj folder" >
+                            <a href="#" class="btn btn-info mr-3 " id="add_video_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Dodaj video u ovaj folder" >
                                 <i class="far fa-file-video"></i>
-                            <a href="#" class="mr-3 " id="add_folder_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Kreiraj folder u ovom folderu" >
+                                <span  class="action_buttons-text">Dodaj video</span>
+                            <a href="#" class="btn btn-dark mr-3 " id="add_folder_to_folder_btn" data-toggle="tooltip" data-placement="top" title="Kreiraj folder u ovom folderu" >
                                 <i class="fas fa-folder-plus"></i>
+                                <span class="action_buttons-text">Kreiraj folder</span>
                             </a>
                             </a>
                             <span>Poslednji selektovani folder je:&nbsp;&nbsp; </span><span id="folder_path" class="text-danger"></span>
