@@ -24,11 +24,17 @@ Route::middleware(['auth'])->group(function (){
     Route::post('/delete-post/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/update-post/{id}', [PostController::class, 'update'])->name('posts.update');
 });
+//video player youtube HA CODES
+Route::middleware(['auth'])->group(function (){
+    Route::get('/video-player-ha', [\App\Http\Controllers\VideoController::class, 'videoHa'])->name('video.player.ha');
+});
 
 //video plejer od web dev simplified
 Route::middleware(['auth'])->group(function (){
     Route::get('/video-player', [\App\Http\Controllers\VideoController::class, 'index'])->name('video.player.index');
 });
+Route::get('/many-videos', [\App\Http\Controllers\VideoController::class, 'manyVideos'])->name('video.player.many');
+Route::get('/get-video/{video}', [\App\Http\Controllers\VideoController::class, 'getVideo'])->name('get.video');
 
 //file manager
 Route::group(['middleware' => [ 'auth']], function () {

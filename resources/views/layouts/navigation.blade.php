@@ -34,6 +34,9 @@
                     <a class="nav-link" href="{{route('video.player.index')}}">Video plejer</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{route('video.player.many')}}">Nekolio videa na strani</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{route('create.post.with.file.manager')}}">Kreiraj post sa file manager</a>
                 </li>
 
